@@ -1,6 +1,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <iomanip>
 #include <iterator>
 #include <set>
 #include "Instruction.h"
@@ -16,12 +17,12 @@ std::istream& operator>>(std::istream& i, Instr& s)
 }
 std::ostream& operator<<(std::ostream& o, const Instr& s)
 {
-	o << s.code << " "; o.width(2); o << s.a << " "; o.width(2); o << s.b << " "; o.width(2); o << s.c;
+	o << s.code << " " << setw(2) << s.a << " " << setw(2) << s.b << " " << setw(2) << s.c;
 	return o;
 }
 ostream& operator<<(ostream& o, const Registers& v)
 {
-	for (auto e : v) { o.width(3); o << e << " "; } return o;
+	for (auto e : v) { o << setw(3) << e << " "; } return o;
 }
 
 Processor::Processor()
@@ -125,7 +126,7 @@ std::string Converter::Convert(int ipBound, const std::vector<Instr>& instructio
 	for (; cur < instructions.size(); ++cur)
 	{
 		auto& ii = instructions[cur];
-		s << Lbl(cur) << ": " << conv[ii.code](ii.a, ii.b, ii.c) << " //(" << cur << ") "<< ii << std::endl;
+		s << left << setw(5) << Lbl(cur) + ":" << " " << left << setw(48) << conv[ii.code](ii.a, ii.b, ii.c) << " //(" << cur << ") "<< ii << std::endl;
 	}
 	s << "\t" << "return reg;" << endl
 		<< "}";
