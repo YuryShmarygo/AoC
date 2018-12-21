@@ -2,8 +2,13 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Instruction.cpp" />
+    <ClCompile Include="d21_processor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="d21.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Instruction.h" />
   </ItemGroup>
 </Project>
