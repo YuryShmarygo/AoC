@@ -162,6 +162,7 @@ namespace old {
 				}
 			}
 		}
+		cout << bestI << " : " << best.size();
 		return 0;
 	}
 

@@ -126,7 +126,7 @@ std::string Converter::Convert(int ipBound, const std::vector<Instr>& instructio
 	for (; cur < instructions.size(); ++cur)
 	{
 		auto& ii = instructions[cur];
-		s << left << setw(5) << Lbl(cur) + ":" << " " << left << setw(48) << conv[ii.code](ii.a, ii.b, ii.c) << " //(" << cur << ") "<< ii << std::endl;
+		s << left << setw(5) << Lbl(cur) + ":" << " reg[" << ipBound << "] = " << setw(2) << cur << "; " << left << setw(48) << conv[ii.code](ii.a, ii.b, ii.c) << " //(" << cur << ") "<< ii << std::endl;
 	}
 	s << "\t" << "return reg;" << endl
 		<< "}";
