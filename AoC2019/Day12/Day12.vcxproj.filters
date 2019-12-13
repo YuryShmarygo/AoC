@@ -3,7 +3,4 @@
   <ItemGroup>
     <ClCompile Include="Day12.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <CopyFileToFolders Include="Day12.txt" />
-  </ItemGroup>
 </Project>
