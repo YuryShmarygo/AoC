@@ -8,7 +8,7 @@
 #include <map>
 #include <set>
 #include <algorithm>
-#include <time.h>
+#include <ctime>
 #include <iomanip>
 #include <regex>
 #include <functional>
@@ -132,6 +132,57 @@ public:
 
 	struct OpCode
 	{
+		struct Param
+		{
+			OpCode& _op;
+			int _mode;
+			int _offset;
+			
+			Param(OpCode& op, int mode, int offset) : _op(op), _mode(mode), _offset(offset) {}
+			void CheckSize(int size)
+			{
+				if ((size_t)size >= _op._mem.size())
+					_op._mem.resize(size + 1);
+			}
+			long long& GetValue()
+			{
+				switch (_mode)
+				{
+				case 0:
+					CheckSize(_op._cur + _offset);
+					CheckSize(_op._mem[_op._cur + _offset]);
+					return _op._mem[(int)_op._mem[(int)(_op._cur + _offset)]];
+				case 1:
+					CheckSize(_op._cur + _offset);
+					return _op._mem[_op._cur + _offset];
+				case 2:
+					CheckSize(_op._cur + _offset);
+					CheckSize(_op._base + _op._mem[_op._cur + _offset]);
+					return _op._mem[_op._base + (int)_op._mem[_op._cur + _offset]];
+				default:
+					cout << "Invalid parameter mode: " << _mode << endl;
+				};
+				throw exception("Invalid parameter mode");
+			}
+			ostream& operator<<(ostream& os) const
+			{
+				switch (_mode)
+				{
+				case 0:
+					os << "**(" << _op._cur + _offset << "):*(" << _op._mem[(int)_op._cur + _offset] << "):" << _op._mem[(int)_op._mem[(int)(_op._cur + _offset)]];
+					break;
+				case 1:
+					os << "*(" << _op._cur + _offset << "):(" << _op._mem[(int)_op._cur + _offset] << ")";
+					break;
+				case 2:
+					os <<"*b[" << _op._base << "](" << _op._cur + _offset << "):*[" << _op._base << "](" << _op._mem[(int)_op._cur + _offset] << "):" << _op._mem[_op._base + (int)_op._mem[_op._cur + _offset]];
+					break;
+				default:
+					os << "Invalid parameter mode: " << _mode << endl;
+				};
+				return os;
+			}
+		};
 		OpCode(vector<long long>& mem, int p, int base) : _mem(mem), _cur(p), _base(base)
 		{
 			code = _mem[p] % 100;
@@ -190,27 +241,27 @@ public:
 		while (true)
 		{
 			auto op = OpCode(_mem, _cur, _base);
-			_trace << "OP(" << _cur << ": " << op.code;
+			_trace << "OP(" << _cur << ": " << op.code << " ";
 			switch (op.code)
 			{
 			case 99:
 				_trace << "EXIT)" << endl;
 				return;
 			case 1:
-				_trace << "ADD)(" << op._param[1] << ", " << op._param[2] << ", " << op._param[3] << ")";
+				_trace << "ADD)(" << op._param[0] << ", " << op._param[1] << ", " << op._param[2] << ")";
 				op.Param(3) = op.Param(1) + op.Param(2);
 				shift = 4;
 				_trace << " ==> " << op.Param(3) << endl;
 				break;
 			case 2:
-				_trace << "MUL)(" << op._param[1] << ", " << op._param[2] << ", " << op._param[3] << ")";
+				_trace << "MUL)(" << op._param[0] << ", " << op._param[1] << ", " << op._param[2] << ")";
 				op.Param(3) = op.Param(1) * op.Param(2);
 				shift = 4;
 				_trace << " ==> " << op.Param(3) << endl;
 				break;
 			case 3:
 			{
-				_trace << "IN)(" << op._param[1] << ")";
+				_trace << "IN)(" << op._param[0] << ")";
 				cout << _board;
 				long long value;
 				cout << "Enter code:";
@@ -221,17 +272,19 @@ public:
 				break;
 			}
 			case 4:
-				_trace << "OUT)(" << op._param[1] << ")";
+				_trace << "OUT)(" << op._param[0] << ")";
 				//cout << op.Param(1) << endl;
 				switch (_state)
 				{
 				case XCapture:
 					_x = (int)op.Param(1);
 					_state = YCapture;
+					_trace << " ==> _x = " << _x << endl;
 					break;
 				case YCapture:
 					_y = (int)op.Param(1);
 					_state = TileCapture;
+					_trace << " ==> _y = " << _y << endl;
 					if (_x == -1 && _y == 0)
 						_state = ScoreCapture;
 					break;
@@ -241,11 +294,13 @@ public:
 						cout << "Inalid coordinates _x(" << _x << "), _y(" << _y << ")" << endl;
 					_board[_y][_x] = (ETileType)op.Param(1);
 					_state = XCapture;
+					_trace << " ==> _board[" << _y << "][" << _x << "] = " << (ETileType)op.Param(1) << endl;
 					break;
 				case ScoreCapture:
 					_score = (int)op.Param(1);
 					_state = XCapture;
 					cout << "New score: " << _score << endl;
+					_trace << " ==> _score = " << _score << endl;
 					break;
 				default:
 					cout << "Invalid state[" << _state << "]" << endl;
@@ -253,27 +308,37 @@ public:
 				shift = 2;
 				break;
 			case 5:
+				_trace << "IF NOT 0)(" << op._param[0] << ")";
 				if (op.Param(1) != 0)
 					shift = (int)(op.Param(2) - _cur);
 				else
 					shift = 3;
+				_trace << " ==> next op address: " << _cur + shift << endl;
 				break;
 			case 6:
+				_trace << "IF == 0)(" << op._param[0] << ")";
 				if (op.Param(1) == 0)
 					shift = (int)(op.Param(2) - _cur);
 				else
 					shift = 3;
+				_trace << " ==> next op address: " << _cur + shift << endl;
 				break;
 			case 7:
+				_trace << "LESS)(" << op._param[0] << ", " << op._param[1] << ", " << op._param[2] << ")";
 				op.Param(3) = op.Param(1) < op.Param(2) ? 1 : 0;
 				shift = 4;
+				_trace << " ==> " << op.Param(3) << endl;
 				break;
 			case 8:
+				_trace << "EQ)(" << op._param[0] << ", " << op._param[1] << ", " << op._param[2] << ")";
 				op.Param(3) = op.Param(1) == op.Param(2) ? 1 : 0;
 				shift = 4;
+				_trace << " ==> " << op.Param(3) << endl;
 				break;
 			case 9:
+				_trace << "BASE+=)(" << op._param[0] << ")";
 				_base += (int)(op.Param(1));
+				_trace << " ==> _base = " << _base << endl;
 				shift = 2;
 				break;
 			default:
@@ -296,7 +361,7 @@ int main()
 	Machine m(input, os, board);
 	m.Run();
 
-	int s = 0;
+	long long s = 0;
 	for (auto& l : board)
 		s += count_if(l.begin(), l.end(), [&](auto t) {return t == Block; });
 	cout << "Day13, answer1: " << s << endl;
