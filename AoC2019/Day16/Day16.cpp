@@ -1,0 +1,117 @@
+#include <iostream>
+#include <iterator>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <list>
+#include <map>
+#include <set>
+#include <algorithm>
+#include <ctime>
+#include <iomanip>
+#include <regex>
+#include <functional>
+#include <numeric> 
+#include <cstdlib>
+
+using namespace std;
+#define S(s) ((std::ostringstream&)(std::ostringstream() << s)).str()
+
+vector<char> Process(const vector<char>& input, const vector<vector<char>>& patterns)
+{
+    vector<char> output; output.reserve(input.size());
+    for (size_t i = 0; i < input.size(); ++i)
+    {
+        auto itp = patterns[i].begin() + 1;
+        long long sum = 0;
+        for (auto c : input)
+        {
+            if (itp == patterns[i].end())
+                itp = patterns[i].begin();
+            sum += (long long)c * (*itp);
+            ++itp;
+        }
+        output.push_back(abs(sum) % 10);
+    }
+    return output;
+}
+
+typedef vector<vector<char>> Patterns;
+Patterns CreatePatterns(int n)
+{
+    static char _base[] = { 0,1,0,-1 };
+    Patterns patterns(n, vector<char>());
+    for (int i = 0; i < n; ++i)
+    {
+        auto& p = patterns[i];
+        int r = i + 1;
+        p.reserve(r * 4);
+        for (auto b : _base)
+            for (int j = 0; j < r; ++j)
+                p.push_back(b);
+    }
+    return patterns;
+}
+istream& operator>>(istream& is, vector<char>& input)
+{
+    string str;
+    is >> str;
+    input.reserve(str.size());
+    transform(str.begin(), str.end(), back_inserter(input), [](auto c) {return c - '0'; });
+    return is;
+}
+void run_tests();
+int main()
+{
+    //run_tests(); return 0;
+    ifstream is("Day16.txt");
+    vector<char> input;
+    is >> input;
+
+    auto patterns = CreatePatterns(input.size());
+    vector<char> cur = input;
+    for (int i = 0; i < 100; ++i)
+        cur = Process(cur, patterns);
+
+    cout << "Day16, answer1: "; copy_n(cur.begin(), 8, ostream_iterator<int>(cout, "")); cout << endl;
+
+    return 0;
+}
+
+void test0()
+{
+    stringstream is("12345678");
+    vector<char> input;
+    is >> input;
+    auto patterns = CreatePatterns(input.size());
+
+    vector<char> cur = input;
+    for (int i = 0; i < 3; ++i)
+    {
+        cur = Process(cur, patterns);
+        cout << i << ": "; copy_n(cur.begin(), 8, ostream_iterator<int>(cout, "")); cout << endl;
+    }
+}
+void test1(string str)
+{
+    stringstream is(str);
+    vector<char> input;
+    is >> input;
+    auto patterns = CreatePatterns(input.size());
+
+    vector<char> cur = input;
+    for (int i = 0; i < 100; ++i)
+        cur = Process(cur, patterns);
+
+    cout << str << ": "; copy_n(cur.begin(), 8, ostream_iterator<int>(cout, "")); cout << endl;
+
+}
+
+void run_tests()
+{
+    test0();
+    test1("80871224585914546619083218645595");
+    test1("19617804207202209144916044189917");
+    test1("69317163492948606335995924319873");
+}

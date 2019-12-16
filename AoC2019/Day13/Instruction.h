@@ -1,11 +1,16 @@
 #ifndef _INSTRUCTION_H_
 #define _INSTRUCTION_H_
+#include <vector>
 
-struct OpCode
+struct Instruction
 {
-	OpCode(vector<long long>& mem, int p, int base) : _mem(mem), _cur(p), _base(base)
+	std::vector<long long>& _mem;
+	int _cur;
+	int _base;
+	int _code;
+	Instruction(std::vector<long long>& mem, int p, int base) : _mem(mem), _cur(p), _base(base)
 	{
-		code = _mem[p] % 100;
+		_code = _mem[p] % 100;
 		m[0] = _mem[p] / 100 % 10;
 		m[1] = _mem[p] / 1000 % 10;
 		m[2] = _mem[p] / 10000 % 10;
