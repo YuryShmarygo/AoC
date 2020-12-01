@@ -14,7 +14,7 @@
 #include <functional>
 #include <numeric> 
 #include <cstdlib>
-#include <boost/algorithm/string.hpp>
+//#include <boost/algorithm/string.hpp>
 
 using namespace std;
 #define S(s) ((std::ostringstream&)(std::ostringstream() << s)).str()
@@ -35,6 +35,18 @@ struct Reaction
     Comp out;
 };
 
+vector<string> split(const string& s, char delim) {
+    vector<string> result;
+    stringstream ss(s);
+    string item;
+
+    while (getline(ss, item, delim)) {
+        result.push_back(item);
+    }
+
+    return result;
+}
+
 istream& operator>>(istream& is, Reaction& r)
 {
     string line;
@@ -47,8 +59,7 @@ istream& operator>>(istream& is, Reaction& r)
         throw exception(C("Invalid line: " << line));
 
     r.out = Comp(g[3], stoi(g[2]));
-    vector<string> i_str;
-    boost::split(i_str, g[1].str(), boost::is_any_of(","));
+    auto i_str = split(g[1].str(), ',');
     for (auto s : i_str)
     {
         smatch gi;
