@@ -25,5 +25,5 @@ public:
 
 	Machine(std::vector<long long>& input, int base = 0) : _mem(input), _cur(0), _base(base) {}
 
-	void Run(std::vector<long long>& out);
+	void Run(std::vector<long long>& out, const std::vector<long long>& in);
 };

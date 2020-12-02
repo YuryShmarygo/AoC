@@ -51,8 +51,9 @@ long long& Machine::OpCode::Param(int i)
 	throw "Invalid parameter mode";
 }
 
-void Machine::Run(vector<long long>& out)
+void Machine::Run(vector<long long>& out, const vector<long long>& in)
 {
+	auto itin = in.begin();
 	int shift = 0;
 	while (true)
 	{
@@ -71,10 +72,10 @@ void Machine::Run(vector<long long>& out)
 			break;
 		case 3:
 		{
-			long long value;
-			cout << "Enter code:";
-			cin >> value;
-			op.Param(1) = value;
+			//long long value;
+			//cout << "Enter code:";
+			//cin >> value;
+			op.Param(1) = *itin++;
 			shift = 2;
 			break;
 		}

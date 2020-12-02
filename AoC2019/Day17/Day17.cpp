@@ -168,10 +168,10 @@ list<string> split_path(const Path& path)
         string replaced = str;
         for (int i = 1; i < g.size(); ++i)
         {
-            res.push_back(g[i].str());
+            res.push_back(g[i].str().substr(0, g[i].str().size()-1));
             replaced = regex_replace(replaced, regex(g[i].str()), rep[i-1]);
         }
-        res.insert(res.begin(), replaced);
+        res.insert(res.begin(), replaced.substr(0, replaced.size()-1));
     }
     return res;
 }
@@ -197,8 +197,9 @@ list<string> create_paths(const vector<string>& plan)
         }
         if (cur->count_visited() == to_visit)
         {
+            cur->path.push_back(cur->step);
             res.push_back(S(cur->path));
-            cout << "Found path: " << cur->path << endl;
+            //cout << "Found path: " << cur->path << endl;
             auto split = split_path(cur->path);
             if (split.size() > 0)
                 return split;
@@ -242,17 +243,27 @@ int main()
 
     Machine m(input);
     vector<long long> res;
-    m.Run(res);
+    m.Run(res, res);
 
     auto plan = to_strings(res);
     cout << "Day17, task1: " << task1(plan) << endl;
 
     auto paths = create_paths(plan);
-    cout << paths << endl;
-    //input[0] = 2;
-    //Machine m(input);
-    //vector<long long> res;
-    //m.Run(res);
+    //cout << paths << endl;
+    vector<long long> prog;
+    for (auto& s : paths)
+    {
+        for (auto& c : s)
+            prog.push_back(c);
+        prog.push_back('\n');
+    }
+    prog.push_back('n');
+    prog.push_back('\n');
+    input[0] = 2;
+    Machine m2(input);
+    res.clear();
+    m2.Run(res, prog);
+    cout << "Day17, task2: " << res[res.size()-1] << endl;
 
     return 0;
 }
