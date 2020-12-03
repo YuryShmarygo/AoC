@@ -7,59 +7,35 @@
 
 using namespace std;
 
-struct Policy
+int count_trees(const vector<string>& input, int dx, int dy)
 {
-	int min;
-	int max;
-	char s;
-	string pwd;
-};
-
-istream& operator>>(istream& i, Policy& p)
-{
-	char separator;
-	i >> p.min >> separator >> p.max >> p.s >> separator >> p.pwd;
-	return i;
-}
-ostream& operator<<(ostream& o, const Policy& p)
-{
-	o << '[' << p.min << '-' << p.max << ' ' << p.s << ':' << p.pwd << ']';
-	return o;
-}
-int countc(string str, char f)
-{
+	int x = 0;
 	int count = 0;
-	for (auto& c : str)
-		if (c == f)
+	int width = input[0].size();
+	for (int y = 0; y < input.size(); y += dy)
+	{
+		if (input[y][x] == '#')
 			++count;
+		x += dx;
+		if (x >= width)
+			x -= width;
+	}
 	return count;
 }
 
 int main()
 {
 	ifstream is("Day3.txt");
-	istream_iterator<Policy> start(is), end;
-	vector<Policy> input(start, end);
-	cout << "Read " << input.size() << " policies" << endl;
-	//for (auto& p : input) cout << p << endl;
+	istream_iterator<string> start(is), end;
+	vector<string> input(start, end);
+	//cout << "Read " << input.size() << " lines." << endl;
 
-	int count = 0;
-	for (auto& p : input)
-	{
-		int c = countc(p.pwd, p.s);
-		if (c >= p.min && c <= p.max)
-			++count;
-	}
-	cout << "Day3 Answer1: " << count << endl;
+	cout << "Day3 Answer1: " << count_trees(input, 3, 1) << endl;
 
-	count = 0;
-	for (auto& p : input)
-	{
-		if (p.min <= p.pwd.size() && p.pwd[p.min - 1] == p.s && p.max <= p.pwd.size() && p.pwd[p.max - 1] != p.s
-			|| p.min <= p.pwd.size() && p.pwd[p.min - 1] != p.s && p.max <= p.pwd.size() && p.pwd[p.max - 1] == p.s)
-		{
-			++count;
-		}
-	}
+	vector<pair<int, int>> shifts{ {1,1}, {3,1}, {5,1}, {7,1}, {1,2} };
+	long long count = 1;
+	for (auto shift : shifts)
+		count *= count_trees(input, shift.first, shift.second);
+
 	cout << "Day3 Answer2: " << count << endl;
 }
