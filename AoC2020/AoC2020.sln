@@ -23,6 +23,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Generator", "Generator\Gene
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Day9", "Day9\Day9.vcxproj", "{73C5A0C8-BE8B-423D-A513-EAFC1C9C3310}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Day10", "Day10\Day10.vcxproj", "{26082CBB-EEDB-4D6D-8190-4F1F33FE0C3B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -111,6 +113,14 @@ Global
 		{73C5A0C8-BE8B-423D-A513-EAFC1C9C3310}.Release|x64.Build.0 = Release|x64
 		{73C5A0C8-BE8B-423D-A513-EAFC1C9C3310}.Release|x86.ActiveCfg = Release|Win32
 		{73C5A0C8-BE8B-423D-A513-EAFC1C9C3310}.Release|x86.Build.0 = Release|Win32
+		{26082CBB-EEDB-4D6D-8190-4F1F33FE0C3B}.Debug|x64.ActiveCfg = Debug|x64
+		{26082CBB-EEDB-4D6D-8190-4F1F33FE0C3B}.Debug|x64.Build.0 = Debug|x64
+		{26082CBB-EEDB-4D6D-8190-4F1F33FE0C3B}.Debug|x86.ActiveCfg = Debug|Win32
+		{26082CBB-EEDB-4D6D-8190-4F1F33FE0C3B}.Debug|x86.Build.0 = Debug|Win32
+		{26082CBB-EEDB-4D6D-8190-4F1F33FE0C3B}.Release|x64.ActiveCfg = Release|x64
+		{26082CBB-EEDB-4D6D-8190-4F1F33FE0C3B}.Release|x64.Build.0 = Release|x64
+		{26082CBB-EEDB-4D6D-8190-4F1F33FE0C3B}.Release|x86.ActiveCfg = Release|Win32
+		{26082CBB-EEDB-4D6D-8190-4F1F33FE0C3B}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
