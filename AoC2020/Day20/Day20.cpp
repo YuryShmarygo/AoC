@@ -193,14 +193,9 @@ long long task1(const Tiles& tiles)
 int task2(const Tiles& input)
 {
 	Tiles tiles(input);
-	vector<string> mon = {
-"                  # ",
-"#    ##    ##    ###",
-" #  #  #  #  #  #   " };
 	int size = (int)sqrt(tiles.size());
 	int tile_size = (int)tiles.begin()->second.im.size() - 2;
 	int im_size = size * tile_size;
-	vector<string> image(im_size, string(im_size, ' '));
 
 	vector<vector<int>> pos(size, vector<int>(size, 0));
 	for (auto& t : tiles)
@@ -213,14 +208,6 @@ int task2(const Tiles& input)
 	}
 	auto it = find_if(tiles.begin(), tiles.end(), [](auto& t) { return 2 == count(t.second.adj.begin(), t.second.adj.end(), 0); });
 	it->second.position({ { Tile::EEdge::top, 0 }, { Tile::EEdge::left, 0 } });
-	/*
-	if (it->second.adj[0] != 0 && it->second.adj[1] != 0)
-		it->second.rotate(Right);
-	else if (it->second.adj[2] != 0 && it->second.adj[3] != 0)
-		it->second.rotate(Left);
-	else if (it->second.adj[3] != 0 && it->second.adj[0] != 0)
-		it->second.rotate(Full);
-		*/
 	for (int i = 0; i < size; ++i)
 	{
 		for (int j = 0; j < size; ++j)
@@ -240,6 +227,7 @@ int task2(const Tiles& input)
 		}
 	}
 
+	vector<string> image(im_size, string(im_size, ' '));
 	for (int i = 0; i < pos.size(); ++i)
 		for (int j = 0; j < pos.size(); ++j)
 		{
@@ -249,6 +237,10 @@ int task2(const Tiles& input)
 					image[i * tile_size + y][j * tile_size + x] = ti[y][x];
 		}
 
+	vector<string> mon = {
+"                  # ",
+"#    ##    ##    ###",
+" #  #  #  #  #  #   " };
 	static vector<EFlip> flips{ Ver, Hor };
 	static vector<ERot> rotations{ Right, Full, Left };
 	int res = 0;
