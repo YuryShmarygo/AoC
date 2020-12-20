@@ -20,6 +20,9 @@ using namespace std;
 #define S(s) ((std::ostringstream&)(std::ostringstream() << s)).str()
 #define C(s) S(s).c_str()
 
+template<int N> int mod_n(int n)
+{ return n < 0 ? N + n : n >= N ? n - N : n; }
+
 struct Conv
 {
 	function<int(int x, int y)> x;
@@ -84,14 +87,12 @@ struct Tile
 			res[i - 1] = im[i].substr(1, im[i].size() - 1);
 		return res;
 	}
-	int mod_4(int n)
-	{ return n < 0 ? 4 + n : n >= 4 ? n - 4 : n; }
 	void rotate(ERot rtype)
 	{
 		static vector<int> shifts{ /*Right*/ 1, /*Full*/ 2, /*Left*/ -1 };
 		Tile t(*this);
 		for (int i = 0; i < 4; ++i)
-			adj[mod_4(i + shifts[(int)rtype])] = t.adj[i];
+			adj[mod_n<4>(i + shifts[(int)rtype])] = t.adj[i];
 		im = ::rotate(im, rtype);
 		init_edges();
 	}
@@ -104,6 +105,22 @@ struct Tile
 			swap(adj[1], adj[3]);
 		im = ::flip(im, ftype);
 		init_edges();
+	}
+	ERot rot_diff(EEdge cur, EEdge targ)
+	{
+		return (ERot)mod_n<3>(targ - cur);
+	}
+	void position(map<EEdge, int> p_edges)
+	{
+		auto it = p_edges.begin();
+		if (it->second != adj[it->first])
+		{
+			auto itc = find(adj.begin(), adj.end(), it->second);
+			rotate((ERot)mod_n<3>((int)(it->first - (itc - adj.begin()))));
+		}
+		it = next(it);
+		if (it != p_edges.end() && it->second != adj[it->first])
+			flip((EFlip)mod_n<2>(it->first));
 	}
 };
 typedef map<int, Tile> Tiles;
@@ -195,12 +212,15 @@ int task2(const Tiles& input)
 		}
 	}
 	auto it = find_if(tiles.begin(), tiles.end(), [](auto& t) { return 2 == count(t.second.adj.begin(), t.second.adj.end(), 0); });
+	it->second.position({ { Tile::EEdge::top, 0 }, { Tile::EEdge::left, 0 } });
+	/*
 	if (it->second.adj[0] != 0 && it->second.adj[1] != 0)
 		it->second.rotate(Right);
 	else if (it->second.adj[2] != 0 && it->second.adj[3] != 0)
 		it->second.rotate(Left);
 	else if (it->second.adj[3] != 0 && it->second.adj[0] != 0)
 		it->second.rotate(Full);
+		*/
 	for (int i = 0; i < size; ++i)
 	{
 		for (int j = 0; j < size; ++j)
@@ -208,32 +228,14 @@ int task2(const Tiles& input)
 			pos[i][j] = it->first;
 			if (j != size - 1)
 			{
-				auto edge = it->second.edge(Tile::EEdge::right);
-				string redge(edge.rbegin(), edge.rend());
 				it = tiles.find(it->second.adj[1]);
-				if (edge == it->second.edge(Tile::EEdge::top) || redge == it->second.edge(Tile::EEdge::top))
-					it->second.rotate(Left);
-				else if (edge == it->second.edge(Tile::EEdge::right) || redge == it->second.edge(Tile::EEdge::right))
-					it->second.rotate(Full);
-				else if (edge == it->second.edge(Tile::EEdge::bottom) || redge == it->second.edge(Tile::EEdge::bottom))
-					it->second.rotate(Right);
-				if (it->second.adj[0] != (i == 0 ? 0 : pos[i - 1][j + 1]))
-					it->second.flip(Ver);
+				it->second.position({ {Tile::EEdge::left, pos[i][j]}, {Tile::EEdge::top, i == 0 ? 0 : pos[i - 1][j + 1]} });
 			}
 			else if (i != size - 1)
 			{
 				it = tiles.find(pos[i][0]);
-				auto edge = it->second.edge(Tile::EEdge::bottom);
-				string redge(edge.rbegin(), edge.rend());
 				it = tiles.find(it->second.adj[2]);
-				if (edge == it->second.edge(Tile::EEdge::right) || redge == it->second.edge(Tile::EEdge::right))
-					it->second.rotate(Left);
-				else if (edge == it->second.edge(Tile::EEdge::bottom) || redge == it->second.edge(Tile::EEdge::bottom))
-					it->second.rotate(Full);
-				else if (edge == it->second.edge(Tile::EEdge::left) || redge == it->second.edge(Tile::EEdge::left))
-					it->second.rotate(Right);
-				if (it->second.adj[3] != 0)
-					it->second.flip(Hor);
+				it->second.position({ {Tile::EEdge::left, 0},{Tile::EEdge::top, pos[i][0]} });
 			}
 		}
 	}
