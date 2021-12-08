@@ -44,19 +44,22 @@ int find_turn_old(const vector<int>& start, int turn)
 }
 int find_turn(const vector<int>& start, int turn)
 {
-	vector<int> hist(turn, 0);
+	//vector<int> hist(turn, 0);
+	int * hist = new int[turn];// to make it faster
+	memset(hist, 0, sizeof(int) * turn);
 	for (int i = 0; i < start.size() - 1; ++i)
 		hist[start[i]] = i + 1;
 	int last = start.back();
 	for (int cur = (int)start.size(); cur < turn; ++cur)
 	{
-		int* p = &hist[last];
+		int* p = hist + last;
 		if (*p == 0)
 			last = 0;
 		else
 			last = cur - *p;
 		*p = cur;
 	}
+	delete[] hist;
 	return last;
 }
 void Test();

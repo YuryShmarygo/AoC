@@ -15,10 +15,14 @@
 #include <numeric> 
 #include <cstdlib>
 #include <queue>
+#include <chrono>
 
 using namespace std;
+using namespace chrono;
 #define S(s) ((std::ostringstream&)(std::ostringstream() << s)).str()
 #define C(s) S(s).c_str()
+string ElapsedMs(const steady_clock::time_point& start)
+{ return S(((duration<double, milli>(high_resolution_clock::now() - start)).count())); }
 
 void Day(list<int>& fish)
 {
@@ -70,8 +74,10 @@ int main()
 
 	//cout << "Read " << input.size() << " groups" << endl;
 
-	cout << "Day6 Answer1: " << Process2(input, 80) << endl;
-	cout << "Day6 Answer2: " << Process2(input, 256) << endl;
+	auto start = high_resolution_clock::now();
+	cout << "Day6 Answer1: " << Process2(input, 80); cout << " took " << ElapsedMs(start) << "ms" << endl;
+	start = high_resolution_clock::now();
+	cout << "Day6 Answer2: " << Process2(input, 256); cout << " took " << ElapsedMs(start) << "ms" << endl;
 }
 
 void Test()

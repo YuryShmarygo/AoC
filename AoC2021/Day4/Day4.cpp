@@ -36,10 +36,8 @@ Board ReadBoard(istream& is)
 	string line;
 	while (getline(is, line) && !line.empty())
 	{
-		board.push_back(vector<int>());
-		stringstream s(line); int num;
-		while (s >> num)
-			board.back().push_back(num);
+		stringstream s(line); istream_iterator<int> start(s), end;
+		board.push_back(vector<int>(start, end));
 	}
 	return board;
 }

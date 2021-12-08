@@ -71,7 +71,7 @@ long long CountCrossing(const vector<Line>& lines)
 void Test();
 int main()
 {
-	Test();
+	//Test();
 	ifstream is("Day5.txt");
 	istream_iterator<Line> start(is), end;
 	vector<Line> input(start, end);

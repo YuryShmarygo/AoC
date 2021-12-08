@@ -179,11 +179,13 @@ int main()
 {
 	Test();
 	ifstream is("Day8.txt");
-	istream_iterator<Signal> start(is), end;
-	vector<Signal> input(start, end);
+	istream_iterator<Signal> begin(is), end;
+	vector<Signal> input(begin, end);
 
-	cout << "Day8 Answer1: " << CountDigits(input) << endl;
-	cout << "Day8 Answer2: " << Solve(input) << endl;
+	auto start = high_resolution_clock::now();
+	cout << "Day8 Answer1: " << CountDigits(input); cout << " took " << ElapsedMs(start) << "ms" << endl;
+	start = high_resolution_clock::now();
+	cout << "Day8 Answer2: " << Solve(input); cout << " took " << ElapsedMs(start) << "ms" << endl;
 }
 
 void Test()
