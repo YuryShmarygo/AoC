@@ -26,3 +26,5 @@ namespace v = std::ranges::views;
 #define C(s) S(s).c_str()
 string ElapsedMs(const steady_clock::time_point& start)
 { return S(((duration<double, milli>(high_resolution_clock::now() - start)).count())); }
+
+void test();
