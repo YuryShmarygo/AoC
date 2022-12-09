@@ -33,15 +33,23 @@ struct fs
 	}
 	void add_file(dir* parent, int size, string name)
 	{
-		file* f = new file{ name, parent->full_name + "/" + name, size};
+		file* f = new file{ name, parent->full_name + "/" + name, size };
 		parent->files[name] = f;
 		files[f->full_name] = f;
 	}
-	int calc_size(dir * cur)
+	int calc_size(dir* cur)
 	{
 		cur->size = accumulate(cur->files.begin(), cur->files.end(), 0, [](auto sum, auto& f) {return sum + f.second->size; });
 		cur->size += accumulate(cur->dirs.begin(), cur->dirs.end(), 0, [&](auto sum, auto& d) {return sum + calc_size(d.second); });
 		return cur->size;
+	}
+	~fs()
+	{
+		dirs.erase(root.full_name);
+		for (auto d : dirs)
+			delete d.second;
+		for (auto f : files)
+			delete f.second;
 	}
 };
 istream& operator>>(istream& is, fs& f)
