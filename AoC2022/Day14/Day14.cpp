@@ -105,7 +105,7 @@ pair<vector<string>, point> add_floor(vector<string> map)
 {
 	size_t h = map.size() + 2;
 	size_t w = (h + 100 - map[0].size() /2) * 2;
-	int shift = (w - static_cast<int>(map[0].size())) / 2;
+	int shift = static_cast<int>(w - map[0].size()) / 2;
 	vector<string> res(h, string(w, ' '));
 	for (size_t y = 0; y < map.size(); ++y)
 	{
