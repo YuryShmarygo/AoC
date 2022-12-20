@@ -1,0 +1,196 @@
+#include "../common.h"
+
+
+struct point
+{
+	point() : x(0), y(0) {}
+	point(int _x, int _y) : x(_x), y(_y) {}
+	point(const point&) = default;
+	point& operator=(const point&) = default;
+	int x;
+	int y;
+	bool operator==(const point&) const = default;
+	auto operator<=>(const point& point) const = default;
+	bool operator<(const point&) const = default;
+};
+struct less_y { bool operator()(const point& p1, const point& p2) const { return p1.y < p2.y || p1.y == p2.y && p1.x < p2.x; } };
+typedef set<point, less_y> set_p;
+vector<vector<point>> patterns{
+	{{0,0},{1,0},{2,0},{3,0}},
+	{{1,0},{0,1},{1,1},{2,1},{1,2}},
+	{{0,0},{1,0},{2,0},{2,1},{2,2}},
+	{{0,0},{0,1},{0,2},{0,3}},
+	{{0,0},{1,0},{0,1},{1,1}} };
+
+void move_p(set<point>& s, const point& p)
+{
+	for (auto& r : s)
+	{
+		const_cast<point&>(r).x += p.x;
+		const_cast<point&>(r).y += p.y;
+	}
+}
+
+struct shape
+{
+	point pos;
+	int w;
+	int h;
+	set<point> s;
+	void init(int hs)
+	{
+		pos.x = 2;
+		pos.y = hs + 4;
+		move_p(s, pos);
+	}
+	void shift(const point& dp)
+	{
+		pos.x += dp.x;
+		pos.y += dp.y;
+		move_p(s, dp);
+	}
+};
+set<point> to_set(const vector<point>& p) { return { p.begin(), p.end() }; }
+vector<shape> all_shapes{
+	{{0,0},4,1,to_set(patterns[0])},
+	{{0,0},3,3,to_set(patterns[1])},
+	{{0,0},3,3,to_set(patterns[2])},
+	{{0,0},1,4,to_set(patterns[3])},
+	{{0,0},2,2,to_set(patterns[4])}};
+
+struct cave
+{
+	vector<set<int>> floor;
+	vector<vector<int>> dy;
+	int h;
+	cave() : floor(7, {0}), dy(7), h(0){}
+};
+ostream& operator<<(ostream& os, const vector<string>& v) { copy(v.rbegin(), v.rend(), ostream_iterator<string>(os, "\n")); return os; }
+vector<string> to_string(const cave& c)
+{
+	vector<string> res(c.h + 1, string("......."));
+	for (size_t x = 0; x < c.floor.size(); ++x)
+		for (auto y : c.floor[x])
+			res[y][x] = '#';
+	return res;
+}
+ostream& operator<<(ostream& os, const cave& c) { return os << to_string(c); }
+vector<string> to_string(const cave& c, const shape& s)
+{
+	auto res = to_string(c);
+	for (int i = static_cast<int>(res.size()); i < s.pos.y + s.h; ++i)
+		res.insert(res.begin(), ".......");
+	for (auto& p : s.s)
+		res[p.y][p.x] = '@';
+	return res;
+}
+bool intersect(cave& c, set<point>& s)
+{
+	for (auto& p : s)
+		if (c.floor[p.x].contains(p.y))
+			return true;
+	return false;
+}
+bool fall(cave& c, shape& s, char w)
+{
+	set<point> m = s.s;
+	int dx = (w == '<' ? -1 : 1);
+	if (s.pos.x + dx >= 0 && s.pos.x + s.w - 1 + dx < 7)
+	{
+		move_p(m, { dx, 0 });
+		if (!intersect(c, m))
+		{
+			s.s = m;
+			s.pos.x += dx;
+		}
+	}
+
+	m = s.s;
+	move_p(m, { 0, -1 });
+	if (!intersect(c, m))
+	{
+		s.s = m;
+		--s.pos.y;
+//		cout << "fall wind: " << w << endl << to_string(c, s) << endl;
+		return true;
+	}
+	for (auto& p : s.s)
+	{
+		c.floor[p.x].insert(c.floor[p.x].end(), p.y);
+		if (c.floor[p.x].size() > 2)
+			c.dy[p.x].push_back(*c.floor[p.x].rbegin() - *next(c.floor[p.x].rbegin()));
+	}
+	int max_y = s.pos.y + s.h-1;
+	c.h = max(c.h, max_y);
+//	cout << "fall wind: " << w << endl << to_string(c, s) << endl;
+	return false;
+}
+
+int solve1(const string& wind, int steps)
+{
+	cave c;
+	int cur_w = 0;
+	int height = 0;
+	for (int i = 0; i < steps; ++i)
+	{
+//		cout << "i: " << i << endl << c << endl;
+		int cur_s = i % 5;
+		shape s = all_shapes[cur_s];
+		s.init(c.h);
+		while (fall(c, s, wind[cur_w]))
+			cur_w = (cur_w + 1) % static_cast<int>(wind.size());
+		cur_w = (cur_w + 1) % static_cast<int>(wind.size());
+		/*
+		int min_y = c.h;
+		for (auto& s : c.floor)
+			min_y = min(min_y, *s.rbegin());
+		if (min_y > 0)
+		{
+//			cout << "i: " << i << " min_y: " << min_y << endl << c << endl;
+			height += min_y;
+			for (auto& s : c.floor)
+			{
+				s.erase(s.begin(), ranges::lower_bound(s, min_y));
+				for (auto& y : s)
+					const_cast<int&>(y) -= min_y;
+			}
+			c.h -= min_y;
+//			cout << c << endl;
+		}
+		*/
+	}
+	
+//	cout << c << endl;
+
+	/*
+	vector<int> x0(c.floor[0].rbegin(), c.floor[0].rend());
+	vector<int> dx0;
+	transform(x0.begin() + 1, x0.end(), x0.begin(), back_inserter(dx0), [](auto x1, auto x2) {return x2 - x1; });
+	int max_e = *r::max_element(dx0);
+	auto itf = find(dx0.rbegin(), dx0.rend(), max_e);
+	auto itn = find(itf + 1, dx0.rend(), max_e);
+	cout << "rep start at: " << x0[itf - dx0.rbegin()] << " rep length: " << x0[itn - dx0.rbegin()] - x0[itf - dx0.rbegin()] << endl;
+	*/
+
+	return c.h + height;
+}
+
+int main()
+{
+	test();// return 0;
+	ifstream is("Day17.txt");
+	string w;
+	is >> w;
+
+	cout << "Day17 answer1: " << solve1(w, 2022) << endl;
+	cout << "Day17 answer2: " << 1 << endl;
+}
+void test()
+{
+	stringstream is(R"(>>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>)");
+	string w;
+	is >> w;
+	//cout << "test1: " << solve1(w,10) << endl;
+	cout << "test2: " << solve1(w, 2022) << endl;
+	cout << "test3: " << 1 << endl;
+}

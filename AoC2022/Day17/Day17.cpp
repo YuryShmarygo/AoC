@@ -1,5 +1,6 @@
 #include "../common.h"
 
+
 struct point
 {
 	point() : x(0), y(0) {}
@@ -12,143 +13,123 @@ struct point
 	auto operator<=>(const point& point) const = default;
 	bool operator<(const point&) const = default;
 };
-/*
-vector<vector<point>> patterns{
-	{{0,0},{1,0},{2,0},{3,0}},
-	{{1,0},{0,1},{1,1},{2,1},{1,2}},
-	{{2,0},{2,1},{0,2},{1,2},{2,2}},
-	{{0,0},{0,1},{0,2},{0,3}},
-	{{0,0},{1,0},{0,1},{1,1}}};
-*/
-vector<vector<point>> patterns{
-	{{0,0},{1,0},{2,0},{3,0}},
-	{{1,0},{0,1},{1,1},{2,1},{1,2}},
-	{{0,0},{1,0},{2,0},{2,1},{2,2}},
-	{{0,0},{0,1},{0,2},{0,3}},
-	{{0,0},{1,0},{0,1},{1,1}} };
-
-void move_p(set<point>& s, const point& p)
-{
-	for (auto& r : s)
-	{
-		const_cast<point&>(r).x += p.x;
-		const_cast<point&>(r).y += p.y;
-	}
-}
+ostream& operator<<(ostream& os, const point& p) { return os << p.x << "," << p.y; }
+vector<vector<string>> patterns{
+{"####"},{".#.","###",".#."},{"..#","..#","###"},{"#","#","#","#"},{"##","##"} };
 
 struct shape
 {
 	point pos;
-	int w;
-	int h;
-	set<point> s;
-	void init(int hs)
-	{
-		pos.x = 2;
-		pos.y = hs + 4;
-		move_p(s, pos);
-	}
-	void shift(const point& dp)
-	{
-		pos.x += dp.x;
-		pos.y += dp.y;
-		move_p(s, dp);
-	}
+	vector<string>& s;
+	explicit shape(int i) : pos(2, 3), s(patterns[i]) {}
+	shape(const point& p, vector<string>& s) : pos(p), s(s){}
 };
-set<point> to_set(const vector<point>& p) { return { p.begin(), p.end() }; }
-vector<shape> all_shapes{
-	{{0,0},4,1,to_set(patterns[0])},
-	{{0,0},3,3,to_set(patterns[1])},
-	{{0,0},3,3,to_set(patterns[2])},
-	{{0,0},1,4,to_set(patterns[3])},
-	{{0,0},2,2,to_set(patterns[4])}};
 
-struct cave
+ostream& operator<<(ostream& os, const list<string>& v) { copy(v.rbegin(), v.rend(), ostream_iterator<string>(os, "\n")); return os; }
+ostream& to_stream(ostream& os, const list<string>& c, list<string>::reverse_iterator itc, const shape& s)
 {
-	set<point> floor;
-	int h;
-	cave() : floor({{0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0}}), h(0) {}
-};
-ostream& operator<<(ostream& os, const vector<string>& v) { copy(v.rbegin(), v.rend(), ostream_iterator<string>(os, "\n")); return os; }
-vector<string> to_string(const cave& c)
-{
-	vector<string> res(c.h + 1, string("......."));
-	for (auto& p : c.floor)
-		res[p.y][p.x] = '#';
-	return res;
+	//auto& [c, itc, s] = o;
+
+	for (auto it = c.rbegin(); it != itc; ++it) os << *it << endl;
+	auto its = s.s.begin();
+	for (; its != s.s.end() && itc !=c.rend(); ++itc, ++its)
+	{
+		auto itc_c = itc->begin();
+		auto its_c = its->begin();
+		for (int x = 0; x < s.pos.x; ++x)
+			os << *itc_c++;
+		for (; itc_c != itc->end() && its_c != its->end(); ++itc_c, ++its_c)
+			os << (*its_c == '#' ? '@' : *itc_c);
+		for (; itc_c != itc->end(); ++itc_c)
+			os << *itc_c;
+		os << endl;
+	}
+	for (auto it = itc; it != c.rend(); ++it) os << *it << endl;
+	return os;
 }
-ostream& operator<<(ostream& os, const cave& c) { return os << to_string(c); }
-vector<string> to_string(const cave& c, const shape& s)
+bool can_fit(list<string>& c, list<string>::reverse_iterator itc, const shape& s)
 {
-	vector<string> res(max(s.pos.y + s.h, c.h+1), string("......."));
-	for (auto& p : c.floor)
-		res[p.y][p.x] = '#';
-	for (auto& p : s.s)
-		res[p.y][p.x] = '@';
-	return res;
+	if (s.pos.x < 0 || s.pos.x + static_cast<int>(s.s[0].size()) > 7) return false;
+	auto its = s.s.begin();
+	for (; its != s.s.end() && itc != c.rend(); ++its, ++itc)
+	{
+		auto its_c = its->begin();
+		auto itc_c = itc->begin() + s.pos.x;
+		for (; its_c != its->end() && itc_c != itc->end(); ++its_c, ++itc_c)
+			if (*its_c == '#' && *itc_c == '#')
+				return false;
+	}
+	return true;
 }
-bool can_move(cave& c, set<point>& s)
+bool fall(list<string>& c, shape& s, char w)
 {
-	set<point> inter;
-	set_intersection(c.floor.begin(), c.floor.end(), s.begin(), s.end(), inserter(inter, inter.end()));
-	return inter.empty();
-}
-bool fall(cave& c, shape& s, char w)
-{
-	set<point> m = s.s;
+	auto itc = c.rbegin();
+	for (int i = 0; i < 3 - s.pos.y; ++i) ++itc;
+//	cout << "fall wind: " << w << " s.pos: " << s.pos << endl; to_stream(cout, c, itc, s) << endl;
 	int dx = (w == '<' ? -1 : 1);
-	if (s.pos.x + dx >= 0 && s.pos.x + s.w - 1 + dx < 7)
-	{
-		move_p(m, { dx, 0 });
-		if (can_move(c, m))
-		{
-			s.s = m;
-			s.pos.x += dx;
-		}
-	}
+	if (can_fit(c, itc, { point(s.pos.x + dx,s.pos.y), s.s}))
+		s.pos.x += dx;
 
-	m = s.s;
-	move_p(m, { 0, -1 });
-	if (can_move(c, m))
+	if (can_fit(c, next(itc), { point(s.pos.x, s.pos.y - 1), s.s }))
 	{
-		s.s = m;
+		++itc;
 		--s.pos.y;
-		//cout << "fall wind: " << w << endl << to_string(c, s) << endl;
+//		cout << "fall wind: " << w << endl;  to_stream(cout, c, itc, s) << endl;
 		return true;
 	}
-	c.floor.insert(s.s.begin(), s.s.end());
-	int max_y = r::max_element(s.s, [](auto& p1, auto& p2) {return p1.y < p2.y; })->y;
-	c.h = max(c.h, max_y);
-	//cout << "fall wind: " << w << endl << to_string(c, s) << endl;
+
+	for (auto its = s.s.begin(); its != s.s.end(); ++its, ++itc)
+	{
+		auto its_c = its->begin();
+		auto itc_c = itc->begin() + s.pos.x;
+		for (; its_c != its->end() && itc_c != itc->end(); ++its_c, ++itc_c)
+			if (*its_c == '#')
+				*itc_c = '#';
+	}
+
+//	cout << "fall wind: " << w << endl << c << endl;
 	return false;
 }
+
 int solve1(const string& wind, int steps)
 {
-	cave c;
+	list<string> c{"#######"};
 	int cur_w = 0;
+	int height = 0;
 	for (int i = 0; i < steps; ++i)
 	{
-		//cout << "i: " << i << endl << c << endl;
+//		cout << "i: " << i << endl << c << endl;
 		int cur_s = i % 5;
-		shape s = all_shapes[cur_s];
-		s.init(c.h);
+		shape s(cur_s);
+		for (int i = 0; i < 3 + static_cast<int>(s.s.size()); ++i)
+			c.emplace_back(".......");
 		while (fall(c, s, wind[cur_w]))
 			cur_w = (cur_w + 1) % static_cast<int>(wind.size());
+		while (c.back() == ".......") c.pop_back();
+//		cout << "i : " << i << endl << c << endl;
 		cur_w = (cur_w + 1) % static_cast<int>(wind.size());
+
+		auto itd = c.rend();
+		int dy = 0;
+		for (auto it = next(c.rbegin()); it != c.rend() && itd == c.rend(); ++it, ++dy)
+		{
+			if (*it == c.back())
+				itd = it;
+		}
+		++dy;
+		cout << "found duplicates: " << dy << endl;
+
+		for (auto it = c.rbegin(); dy > 0 && itd != c.rend() && *it == *itd; --dy, ++it, ++itd) {}
+		cout << "all compare: " << dy << endl;
+
 	}
-	//cout << c << endl;
-	auto str = to_string(c);
-	int start_s = 0;
-	for (int i = 1; i < str.size(); ++i)
-	{
-		
-	}
-	return c.h;
+//	cout << c << endl;
+	return static_cast<int>(c.size()) - 1;
 }
 
 int main()
 {
-	test(); return 0;
+	test();// return 0;
 	ifstream is("Day17.txt");
 	string w;
 	is >> w;
@@ -161,7 +142,7 @@ void test()
 	stringstream is(R"(>>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>)");
 	string w;
 	is >> w;
-	//cout << "test1: " << solve1(w,10) << endl;
+	cout << "test1: " << solve1(w,12) << endl;
 	cout << "test2: " << solve1(w, 2022) << endl;
 	cout << "test3: " << 1 << endl;
 }
