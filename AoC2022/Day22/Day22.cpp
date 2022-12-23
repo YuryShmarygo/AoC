@@ -307,9 +307,8 @@ int main()
 	test(); //return 0;
 	ifstream is("Day22.txt");
 	board b; is >> b;
-	//cout << "Day22 answer1: " << solve1(b) << endl;
+	cout << "Day22 answer1: " << solve1(b) << endl;
 	cout << "Day22 answer2: " << solve2(b) << endl;
-	//68006 174403 37226
 }
 void test()
 {
