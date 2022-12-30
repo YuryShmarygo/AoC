@@ -17,6 +17,7 @@
 #include <queue>
 #include <chrono>
 #include <ranges>
+#include <array>
 
 using namespace std;
 using namespace chrono;

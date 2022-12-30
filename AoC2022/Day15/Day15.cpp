@@ -2,20 +2,14 @@
 
 struct point
 {
-	point() : x(0), y(0){}
-	point(int _x, int _y) : x(_x), y(_y) {}
-	point(const point&) = default;
-	point& operator=(const point&) = default;
 	int x;
 	int y;
 	bool operator==(const point&) const = default;
 	auto operator<=>(const point& point) const = default;
 	bool operator<(const point&) const = default;
 };
-point operator+(const point& p1, const point& p2)
-{ return {p1.x + p2.x, p1.y + p2.y};}
-int dist(const point& p1, const point& p2)
-{ return abs(p1.x - p2.x) + abs(p1.y - p2.y); }
+point operator+(const point& p1, const point& p2) { return {p1.x + p2.x, p1.y + p2.y};}
+int dist(const point& p1, const point& p2) { return abs(p1.x - p2.x) + abs(p1.y - p2.y); }
 istream& operator>>(istream& is, point& p)
 {
 	char c;
@@ -29,164 +23,101 @@ struct sensor
 	point s;
 	point b;
 	int d;
+	array<point, 4> v;
 };
 istream& operator>>(istream& is, sensor& s)
 {
 	string str;
 	is >> str >> str >> s.s >> str >> str >> str >> str >> str >> s.b;
 	s.d = dist(s.s, s.b);
+	s.v = array<point, 4>({ {s.s.x - s.d, s.s.y}, {s.s.x + s.d, s.s.y}, {s.s.x, s.s.y - s.d}, {s.s.x, s.s.y + s.d} });
 	return is;
 }
 ostream& operator<<(ostream& os, const sensor& s)
 { return os << s.s << " " << s.b; }
+
+int solve1(const vector<sensor>& input, int row)
+{
+	vector<point> shorts;
+	for (auto& s : input)
+	{
+		int dx = s.d - abs(s.s.y - row);
+		if (dx >= 0) shorts.push_back({ s.s.x - dx, s.s.x + dx });
+	}
+	r::sort(shorts);
+	int sum = 0;
+	int end_x = shorts.front().x - 1;
+	for (auto& p : shorts)
+	{
+		sum += p.y > end_x ? p.y - max(end_x+1,p.x) + 1 : 0;
+		end_x = max(p.y, end_x);
+	}
+	set<point> in_row; for (auto& s : input) { if (s.b.y == row) in_row.insert(s.b); }
+	return sum - static_cast<int>(in_row.size());
+}
 struct box
 {
-	point c;
-	int d;
-};
-/*
-int solve1(const vector<sensor>& input, int row)
-{
-	set<point> res;
-	for (auto& s : input)
-	{
-		int d = dist(s.s, s.b);
-		int dx = d - abs(s.s.y - row);
-		for (int x = s.s.x - dx; x <= s.s.x + dx; ++x)
-			res.insert(point(x, row));
-	}
-	return static_cast<int>(res.size()) - 1; // should actually substruct number of beacons in this row
-}
-*/
-/*
-struct sline
-{
-	int x1;
-	int x2;
-	bool operator<(const sline&) const = default;
-};
-struct srow
-{
-	vector<sline> s;
-	void add_sline(const sline& l)
-	{
-		auto it = s.begin();
-		for (; it != s.end(); ++it)
-		{
-			if (l.x1 < it->x1 && l.x2 < it->x1)
-			{
-				s.insert(it, l);
-				break;
-			}
-			if (l.x1 < it->x1 && l.x2 >= it->x1 && l.x2 < it->x2)
-			{
-				it->x1 = l.x1;
-				break;
-			}
-			if (l.x1 < it->x1 && l.x2 > )
-			if (l.x1 >= it->x1 && l.x1 <= it->x2 && l.x2 <= it->x2)
-			if (s[i].x1 <= l.x1 && s[i].x2 >= l.x1)
-			{
-				s[i].x2 = max(s[i].x2, l.x2);
-				if (i < s.size() - 1 && s[i + 1].x1 <= s[i].x2)
-				{
-					s[i].x2 = s[i + 1].x2;
-					s.erase(s.begin() + i + 1);
-				}
-				break;
-			}
-		}
-	}
-};
-*/
-/*
-int solve1(const vector<sensor>& input, int row)
-{
-	set<int> res;
-	for (auto& s : input)
-	{
-		int d = dist(s.s, s.b);
-		int dx = d - abs(s.s.y - row);
-		for (int x = s.s.x - dx; x <= s.s.x + dx; ++x)
-			res.insert(x);
-	}
-	return static_cast<int>(res.size()) - 1; // should actually substruct number of beacons in this row
-}
-*/
-int solve1(const vector<sensor>& input, int row)
-{
-	set<pair<int, bool>> joints;
-	set<point> ends;
-	for (auto& s : input)
-	{
-		if (s.b.y == row)
-			ends.insert(s.b);
-		int dx = s.d - abs(s.s.y - row);
-		if (dx < 0)
-			continue;
-		int x1 = s.s.x - dx;
-		int x2 = s.s.x + dx;
-		auto it1 = joints.lower_bound({ x1, false });
-		auto it2 = joints.lower_bound({ x2, false });
-		if (it1 == joints.end() || !it1->second)
-			joints.insert(it1, { x1, false });
-		while (it1 != it2)
-			it1 = joints.erase(it1);
-		if (it2 == joints.end() || !it2->second)
-			joints.insert(it2, { x2, true });
-	}
-	int res = 0;
-	for (auto it = joints.begin(); it != joints.end();)
-	{
-		int x1 = it->first;
-		++it;
-		int x2 = it->first;
-		++it;
-		res += x2 - x1 + 1;
-	}
-	return res + static_cast<int>(ends.size());
-}
+	box(const point& p1, const point& p2, const int i = 0) : p1(p1), p2(p2), i(i), v{ p1, p2, { p1.x, p2.y }, { p2.x, p1.y } } {}
 
-/*
-long long solve2(const vector<sensor>& input, int max_size)
+	point p1;
+	point p2;
+	int i;
+	array<point, 4> v;
+};
+ostream& operator<<(ostream& os, const box& b) { return os << "[p1: " << b.p1 << ", p2: " << b.p2 << ", i: " << b.i << "]"; }
+bool operator<(const box& b1, const box& b2) { return b1.i > b2.i || b1.i == b2.i && b1.p2.x + b1.p2.y - b1.p1.x - b1.p1.y > b2.p2.x + b2.p2.y - b2.p1.x - b2.p1.y; }
+bool inside_box(const box& b, const point& p) { return p.x >= b.p1.x && p.x <= b.p2.x && p.y >= b.p1.y && p.y <= b.p2.y; }
+bool inside_sensor(const sensor& s, const point& p) { return dist(s.s, p) <= s.d; }
+bool inside_sensor(const sensor& s, const box& b) { return r::all_of(b.v, [&](auto& p) { return inside_sensor(s, p); }); }
+bool intersects(const box& b, const sensor& s)
+{ return r::any_of(b.v, [&](auto& p) {return inside_sensor(s, p); }) || r::any_of(s.v, [&](auto& p) {return inside_box(b, p); }); }
+int count_int(const vector<sensor>& input, const box& b) { return static_cast<int>(r::count_if(input, [&](auto& s) {return intersects(b, s); })); }
+array<box, 4> split(const box& b)
 {
-	for (int y = 0; y <= max_size; ++y)
-	{
-		set<int> res;
-		for (auto& s : input)
-		{
-			int d = dist(s.s, s.b);
-			int dx = d - abs(s.s.y - y);
-			for (int x = s.s.x - dx; x <= s.s.x + dx; ++x)
-				if (x >= 0 && x <= max_size)
-					res.insert(x);
-		}
-		if (res.size() < max_size+1)
-		{
-			for (int x = 0; x <= max_size; ++x)
-				if (!res.contains(x))
-					return (long long)x * 4000000 + y;
-		}
-	}
-	return 0;
+	int dx = b.p2.x - b.p1.x; dx = (dx + 1) >> 1;
+	int dy = b.p2.y - b.p1.y; dy = (dy + 1) >> 1;
+
+	return array<box, 4>({ box({ b.p1.x, b.p1.y }, { dx > 0 ? b.p1.x + dx - 1 : b.p1.x, dy > 0 ? b.p1.y + dy - 1 : b.p1.y }),
+		box({ b.p1.x + dx, b.p1.y }, { b.p2.x, dy > 0 ? b.p1.y + dy - 1 : b.p1.y }),
+		box({ b.p1.x, b.p1.y + dy }, { dx > 0 ? b.p1.x + dx - 1 : b.p1.x, b.p2.y }),
+		box({ b.p1.x + dx, b.p1.y + dy }, { b.p2.x, b.p2.y }) });
 }
-*/
-struct area
-{};
+array<box, 4> split(const vector<sensor>& input, const box& b)
+{
+	auto res = split(b);
+	for (auto& sub : res)
+		sub.i = count_int(input, sub);
+	return res;
+}
+ostream& operator<<(ostream& os, const vector<box>& bb) { r::copy(bb, ostream_iterator<box>(os, ", ")); return os; }
 long long solve2(const vector<sensor>& input, int max_size)
 {
-	return 0;
+	priority_queue<box> queue;
+	queue.push({ {0,0}, {max_size, max_size}, static_cast<int>(input.size())});
+	while (!queue.empty() && queue.top().i > 0)
+	{
+		auto b = queue.top(); queue.pop();
+//		cout << "Checking: " << b << endl;
+		if (b.p1.x == b.p2.x && b.p1.y == b.p2.y) continue;
+		if (r::any_of(input, [&](auto& s) { return inside_sensor(s, b); })) continue;
+		auto sub = split(input, b);
+//		cout << "Adding: " << sub << endl;
+		for (auto& sb : sub) queue.push(sb);
+	}
+	return queue.empty() ? 0 : static_cast<long long>(queue.top().p1.x) * 4000000 + queue.top().p1.y;
 }
 
 int main()
 {
-	test();
+	test(); //return 0;
 	ifstream is("Day15.txt");
 	istream_iterator<sensor> start(is), end;
 	vector<sensor> input(start, end);
 
-	cout << "Day15 answer1: " << solve1(input, 2000000) << endl;
-	cout << "Day15 answer2: " << solve2(input, 4000000) << endl;
+	auto t_start = high_resolution_clock::now();
+	cout << "Day15 answer1: " << solve1(input, 2000000) << " took: " << ElapsedMs(t_start) << "ms" << endl;
+	t_start = high_resolution_clock::now();
+	cout << "Day15 answer2: " << solve2(input, 4000000) << " took: " << ElapsedMs(t_start) << "ms" << endl;
 }
 void test()
 {
