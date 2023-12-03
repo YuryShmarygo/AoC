@@ -75,11 +75,6 @@ int main()
 	cout << "Day2 Answer1: " << possible(input) << endl;
 	cout << "Day2 Answer2: " << task2(input) << endl;
 }
-vector<string> read_strings(istream& is)
-{
-	istream_iterator<string> start(is), end;
-	return vector<string>(start, end);
-}
 void test()
 {
 	auto test1 = R"(Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
