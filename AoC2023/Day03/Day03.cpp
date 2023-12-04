@@ -134,10 +134,7 @@ long long solve2(const vector<string>& input)
 			v.push_back(n.n);
 		}
 	}
-	return accumulate(gears.begin(), gears.end(), (long long)0, [](auto sum, auto& g) 
-		{
-			return sum + (g.second.size() != 2 ? 0 : (long long)(g.second[0]) * g.second[1]); 
-		});
+	return accumulate(gears.begin(), gears.end(), (long long)0, [](auto sum, auto& g) { return sum + (g.second.size() != 2 ? 0 : (long long)(g.second[0]) * g.second[1]); });
 }
 
 void test();
