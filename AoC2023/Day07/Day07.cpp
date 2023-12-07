@@ -9,11 +9,7 @@ istream& operator>>(istream& is, hand& h) { return is >> h.h >> h.b; }
 ostream& operator<<(ostream& os, const hand& h) { return os << h.h << ' ' << h.b; }
 ostream& operator<<(ostream& os, const vector<hand>& h) { for (auto& hh : h) os << hh << endl; return os; }
 map<char, int> c_s{ {'A', 13}, {'K', 12}, {'Q', 11}, {'J', 10}, {'T', 9}, {'9', 8}, {'8', 7}, {'7', 6}, {'6', 5}, {'5', 4}, {'4', 3}, {'3', 2}, {'2', 1}, {'1', 0} };
-struct match
-{
-	char c;
-	int n;
-};
+
 int strength(string h)
 {
 	map<char, int> m;
@@ -27,7 +23,7 @@ int strength(string h)
 	if (itj != m.end() && it1->first != '1')
 		it1->second += itj->second;
 
-	return pow(10, it1->second) + pow(10, it2->second);
+	return (1 << it1->second) + (1 << it2->second);
 }
 bool operator<(const hand& h1, const hand& h2)
 {
