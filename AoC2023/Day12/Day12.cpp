@@ -35,7 +35,7 @@ struct comb
 	int d_pos;
 
 	bool operator==(const comb&) const = default;
-	auto operator<=>(const comb& point) const = default;
+	auto operator<=>(const comb&) const = default;
 	bool operator<(const comb&) const = default;
 
 	struct HashFunction
