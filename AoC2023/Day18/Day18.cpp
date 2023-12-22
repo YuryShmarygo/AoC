@@ -26,8 +26,8 @@ vector<instr_t> read_instr(istream& is)
 }
 struct point
 {
-	int x;
-	int y;
+	long long x;
+	long long y;
 	bool operator==(const point&) const = default;
 	auto operator<=>(const point& point) const = default;
 	bool operator<(const point&) const = default;
@@ -56,8 +56,8 @@ vector<point> dig(const vector<instr_t>& input)
 }
 vector<point> norm(const vector<point>& tr)
 {
-	int min_x = r::min_element(tr, [](auto& p1, auto& p2) {return p1.x < p2.x; })->x;
-	int min_y = r::min_element(tr, [](auto& p1, auto& p2) {return p1.y < p2.y; })->y;
+	auto min_x = r::min_element(tr, [](auto& p1, auto& p2) {return p1.x < p2.x; })->x;
+	auto min_y = r::min_element(tr, [](auto& p1, auto& p2) {return p1.y < p2.y; })->y;
 	point shift{ -min_x, -min_y };
 	vector<point> res;
 	for (auto& p : tr)
@@ -66,8 +66,8 @@ vector<point> norm(const vector<point>& tr)
 }
 point min_max(const vector<point>& tr)
 {
-	int max_x = r::max_element(tr, [](auto& p1, auto& p2) {return p1.x < p2.x; })->x;
-	int max_y = r::max_element(tr, [](auto& p1, auto& p2) {return p1.y < p2.y; })->y;
+	auto max_x = r::max_element(tr, [](auto& p1, auto& p2) {return p1.x < p2.x; })->x;
+	auto max_y = r::max_element(tr, [](auto& p1, auto& p2) {return p1.y < p2.y; })->y;
 	return { max_x, max_y };
 }
 vector<string> plot(const vector<point>& tr)
@@ -151,15 +151,22 @@ vector<instr_t> convert(const vector<instr_t>& input)
 		res.push_back(convert(i));
 	return res;
 }
+long long find_area(const vector<point>& tr)
+{
+	long long res = 0;
+	long long p = 0;
+	for (auto it = tr.begin(); it != tr.end(); ++it)
+	{
+		auto itn = next(it) == tr.end() ? tr.begin() : next(it);
+		res += (it->y + itn->y) * (it->x - itn->x) / 2;
+		p += abs(it->y - itn->y) + abs(it->x - itn->x) - 1;
+	}
+	return abs(res) + p;
+}
 long long solve2(const vector<instr_t>& input)
 {
-	auto inst = convert(input);
-	int div = inst[0].n;
-	for (auto& i : inst)
-		div = gcd(div, i.n);
-	cout << endl << "div: " << div << endl;
-	return 0;
-	//return solve1(inst);
+	auto tr = norm(dig(convert(input)));
+	return find_area(tr);
 }
 int main()
 {
@@ -195,4 +202,5 @@ U 2 (#7a21e3))";
 
 	cout << "Test1: " << solve1(input) << endl;
 	cout << "Test2: " << solve2(input) << endl;
+	cout << "Test3: " << find_area(norm(dig(input))) << endl;
 }

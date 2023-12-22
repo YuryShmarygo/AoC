@@ -217,6 +217,22 @@ void test()
 	cout << "Test1: " << solve1(input) << endl;
 	cout << "Test2: " << solve1_new(input) << endl;
 	cout << "Test3: " << solve2(input) << endl;
-	//cout << "Test2: " << solve2(input, 10) << endl;
+
+	auto test2 = R"(#.###..#..###
+.#...##.####.
+.#...##.####.
+#.###..#..###
+.#######.##.#
+.#..##.#.#..#
+..#..#.##.#..
+##..##..###.#
+######.##..#.
+######.##....
+##..##..###.#
+..#..#.##.#..
+.#..##.#.#..#)";
+	is = stringstream(test2);
+	is >> input;
+	cout << "Test4: " << solve2(input) << endl;
 	//cout << "Test2: " << solve2(input, 100) << endl;
 }

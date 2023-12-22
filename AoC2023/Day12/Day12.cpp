@@ -88,15 +88,16 @@ long long find_comb(const arrangement& a)
 long long find_comb_wcache(const arrangement& a)
 {
 	long long res = 0;
-	//list<comb> c; c.push_back({ a.s.begin(), a.d.begin() });
-	//vector<comb> c; c.reserve(1000000); c.push_back({ a.s.begin(), a.d.begin() });
+	long long cache_hits = 0;
 	unordered_map<comb, long long, comb::HashFunction> cache;
 	for (int d_pos = a.d.size() - 1; d_pos >= 0; --d_pos)
 	{
 		for (int s_pos = a.s.size() - 1; s_pos >= 0; --s_pos)
 		{
 			long long res = 0;
-			vector<comb> c; c.reserve(1000000); c.push_back({ s_pos, d_pos });
+			cache_hits = 0;
+			vector<comb> c; //c.reserve(1000000); 
+			c.push_back({ s_pos, d_pos });
 			while (!c.empty())
 			{
 				auto cur = c.back();
@@ -105,17 +106,13 @@ long long find_comb_wcache(const arrangement& a)
 				if (itc != cache.end())
 				{
 					res += itc->second;
+					++cache_hits;
 					continue;
 				}
 				if (cur.d_pos == a.d.size())
 				{
 					if (find(a.s.begin() + cur.s_pos, a.s.end(), '#') == a.s.end())
-					{
 						++res;
-						cache[cur] = 1;
-					}
-					else
-						cache[cur] = 0;
 					continue;
 				}
 				auto its = find_if(a.s.begin() + cur.s_pos, a.s.end(), [](auto& c) {return c == '#' || c == '?'; });
@@ -129,7 +126,45 @@ long long find_comb_wcache(const arrangement& a)
 			cache[{s_pos, d_pos}] = res;
 		}
 	}
+	cout << endl << "cache size: " << cache.size() << " cache_hits: " << cache_hits << endl;
 	return cache[{0, 0}];
+}
+long long find_comb_wchache2(const arrangement& a)
+{
+	long long res = 0;
+	vector<comb> c; c.push_back({ 0, 0 });
+	unordered_map<comb, long long, comb::HashFunction> cache;
+	while (!c.empty())
+	{
+		auto cur = c.back();
+		c.erase(prev(c.end()));
+		auto itc = cache.find(cur);
+		if (itc != cache.end())
+		{
+			res += itc->second;
+			continue;
+		}
+		if (cur.d_pos == a.d.size())
+		{
+			if (find(a.s.begin() + cur.s_pos, a.s.end(), '#') == a.s.end())
+			{
+				++res;
+				cache[cur] = 1;
+			}
+			else
+				cache[cur] = 0;
+			continue;
+		}
+		auto its = find_if(a.s.begin() + cur.s_pos, a.s.end(), [](auto& c) {return c == '#' || c == '?'; });
+		if (its == a.s.end()) continue;
+		if (*its == '?')
+			c.push_back({ (int)(its - a.s.begin()) + 1, cur.d_pos });
+		auto [matched, itn] = match(its, a.d[cur.d_pos], a);
+		if (matched)
+			c.push_back({ int(itn - a.s.begin()), cur.d_pos + 1 });
+	}
+	//cout << a << " " << res << endl;
+	return res;
 }
 
 long long solve1(const vector<arrangement>& input)
