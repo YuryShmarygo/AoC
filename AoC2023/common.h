@@ -18,6 +18,7 @@
 #include <chrono>
 #include <ranges>
 #include <array>
+#include <cassert>
 
 using namespace std;
 using namespace chrono;

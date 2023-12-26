@@ -85,17 +85,55 @@ long long find_comb(const arrangement& a)
 	//cout << a << " " << res << endl;
 	return res;
 }
+unordered_map<comb, long long, comb::HashFunction> cache;
+int cache_hit_count;
+arrangement arr;
+long long find_comb_r(int s_pos, int d_pos)
+{
+	long long res = 0;
+	if (s_pos >= arr.s.size())
+		return d_pos >= arr.d.size() ? 1 : 0;
+
+	if (d_pos >= arr.d.size())
+		return find(arr.s.begin() + s_pos, arr.s.end(), '#') == arr.s.end() ? 1 : 0;
+
+	auto itc = cache.find({s_pos, d_pos});
+	if (itc != cache.end())
+	{
+		return itc->second;
+		++cache_hit_count;
+	}
+
+	auto its = find_if(arr.s.begin() + s_pos, arr.s.end(), [](auto& c) {return c == '#' || c == '?'; });
+	if (its != arr.s.end())
+	{
+		if (*its == '?')
+			res += find_comb_r((int)(its - arr.s.begin()) + 1, d_pos);
+		auto [matched, itn] = match(its, arr.d[d_pos], arr);
+		if (matched)
+			res += find_comb_r((int)(itn - arr.s.begin()), d_pos + 1);
+	}
+	cache[{s_pos, d_pos}] = res;
+	return res;
+}
+long long find_comb_wcache(const arrangement& a)
+{
+	arr = a;
+	cache.clear();
+	cache_hit_count = 0;
+	return find_comb_r(0, 0);
+}
+/*
 long long find_comb_wcache(const arrangement& a)
 {
 	long long res = 0;
 	long long cache_hits = 0;
 	unordered_map<comb, long long, comb::HashFunction> cache;
-	for (int d_pos = a.d.size() - 1; d_pos >= 0; --d_pos)
+	for (int d_pos = a.d.size(); d_pos >= 0; --d_pos)
 	{
-		for (int s_pos = a.s.size() - 1; s_pos >= 0; --s_pos)
+		for (int s_pos = a.s.size(); s_pos >= 0; --s_pos)
 		{
 			long long res = 0;
-			cache_hits = 0;
 			vector<comb> c; //c.reserve(1000000); 
 			c.push_back({ s_pos, d_pos });
 			while (!c.empty())
@@ -117,18 +155,44 @@ long long find_comb_wcache(const arrangement& a)
 				}
 				auto its = find_if(a.s.begin() + cur.s_pos, a.s.end(), [](auto& c) {return c == '#' || c == '?'; });
 				if (its == a.s.end()) continue;
+				if (*its == '?')
+				{
+					comb next = { (int)(its - a.s.begin()) + 1, cur.d_pos };
+					auto itc = cache.find(next);
+					if (itc != cache.end())
+					{
+						res += itc->second;
+						++cache_hits;
+					}
+					else
+					{
+						cout << "warning: not found in cache: " << endl;
+					}
+				}
 				auto [matched, itn] = match(its, a.d[cur.d_pos], a);
 				if (matched)
-					c.push_back({ int(itn - a.s.begin()), cur.d_pos + 1 });//c.push_back({ itn, cur.itd + 1 });
-				if (*its == '?')
-					c.push_back({ (int)(its - a.s.begin()) + 1, cur.d_pos });//c.push_back({ its + 1, cur.itd });
+				{
+					comb next = { int(itn - a.s.begin()), cur.d_pos + 1 };
+					auto itc = cache.find(next);
+					if (itc != cache.end())
+					{
+						res += itc->second;
+						++cache_hits;
+					}
+					else
+					{
+						cout << "warning: not found in cache: " << endl;
+					}
+					//c.push_back(next);
+				}
 			}
 			cache[{s_pos, d_pos}] = res;
 		}
 	}
-	cout << endl << "cache size: " << cache.size() << " cache_hits: " << cache_hits << endl;
+	//cout << endl << "cache size: " << cache.size() << " cache_hits: " << cache_hits << endl;
 	return cache[{0, 0}];
 }
+*/
 long long find_comb_wchache2(const arrangement& a)
 {
 	long long res = 0;
@@ -177,9 +241,9 @@ long long solve1(const vector<arrangement>& input)
 		auto t_start = high_resolution_clock::now();
 		long long cur = find_comb(a);
 		res += cur;
-		cout << i << ": " << cur << " took: " << ElapsedMs(t_start)  << "    " << a << endl;
+		cout << i << ": no cache: " << cur << " took: " << ElapsedMs(t_start)  << "    " << a << endl;
 		cur = find_comb_wcache(a);
-		cout << i << ": with cache " << cur << " took: " << ElapsedMs(t_start) << "    " << a << endl;
+		cout << i << ": w/ cache: " << cur << " took: " << ElapsedMs(t_start) << " cach hit count: " << cache_hit_count << "    " << a << endl;
 		++i;
 	}
 	/*/
