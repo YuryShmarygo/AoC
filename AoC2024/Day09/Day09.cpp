@@ -71,7 +71,7 @@ long long solve2(const input_t& input)
 		auto it2 = it;
 		while (it2 != m.begin() && *it2 == *it)
 			--it2;
-		int d = it - it2;
+		int d = (int)(it - it2);
 		auto itf = find_free(m.begin(), it, d);
 		if (itf != it)
 		{
@@ -110,7 +110,6 @@ int main()
 	input_t input = read_input(is);
 
 	cout << "Day9 Answer1: " << solve1(input) << endl;
-	//6398097037768 too high
 	cout << "Day9 Answer2: " << solve2(input) << endl;
 }
 void test()

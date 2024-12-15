@@ -5,10 +5,6 @@ input_t read_input(istream& is)
 {
 	return read_strings(is);
 }
-point operator+(const point& p1, const point& p2)
-{ return {p1.x + p2.x, p1.y + p2.y}; }
-point operator-(const point& p1, const point& p2)
-{ return {p1.x - p2.x, p1.y - p2.y}; }
 typedef map<char, vector<point>> fmap_t;
 fmap_t build_fmap(const input_t& input)
 {

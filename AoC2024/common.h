@@ -37,3 +37,20 @@ vector<string> read_strings(istream& is)
 	istream_iterator<string> start(is), end;
 	return vector<string>(start, end);
 }
+template<typename T>
+struct point_t
+{
+	T x;
+	T y;
+	bool operator==(const point_t<T>&) const = default;
+	auto operator<=>(const point_t& point) const = default;
+	bool operator<(const point_t&) const = default;
+};
+template<typename T>
+point_t<T> operator+(const point_t<T>& p1, const point_t<T>& p2)
+{ return {p1.x + p2.x, p1.y + p2.y}; }
+template<typename T>
+point_t<T> operator-(const point_t<T>& p1, const point_t<T>& p2)
+{ return {p1.x - p2.x, p1.y - p2.y}; }
+
+typedef point_t<int> point;

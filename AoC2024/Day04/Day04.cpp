@@ -5,11 +5,6 @@ input_t read_input(istream& is)
 { 
 	return read_strings(is);
 }
-struct point
-{
-	int x;
-	int y;
-};
 
 long long solve1(const input_t& input)
 {
