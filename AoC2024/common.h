@@ -1,3 +1,6 @@
+#define _REGEX_MAX_COMPLEXITY_COUNT 0
+#define _REGEX_MAX_STACK_COUNT 0
+
 #include <iostream>
 #include <iterator>
 #include <fstream>
